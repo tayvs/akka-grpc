@@ -25,7 +25,7 @@ env:
     - TRAVIS_JDK=adopt@1.11.0-2
 
 before_install: curl -Ls https://git.io/jabba | bash && . ~/.jabba/jabba.sh
-install: jabba install "$TRAVIS_JDK" && jabba use "$_" && java -Xmx32m -version
+install: jabba install "$TRAVIS_JDK" && jabba use "$_" && java -Xmx32m -version && echo $JAVA_HOME
 
 jobs:
   include:
@@ -38,7 +38,7 @@ jobs:
       name: Test Maven Scala
     - script: sbt publishM2 && cd plugin-tester-java && ./gradlew --include-build ../gradle-plugin clean compileJava
       name: Test Gradle Java
-    - script: sbt publishM2 && cd plugin-tester-scala && ./gradlew --include-build ../gradle-plugin clean compileScala
+    - script: echo $JAVA_HOME && sbt publishM2 && cd plugin-tester-scala && ./gradlew --include-build ../gradle-plugin clean compileScala
       name: Test Gradle Scala
     - script: cd benchmark-java && sbt test:compile
       name: Compile benchmarks
