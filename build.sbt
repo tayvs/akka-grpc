@@ -35,7 +35,16 @@ lazy val codegen = Project(id = akkaGrpcCodegenId, base = file("codegen"))
   .settings(addArtifact(artifact in (Compile, assembly), assembly))
   .settings(addArtifact(Artifact(akkaGrpcCodegenId, "bat", "bat", "bat"), mkBatAssemblyTask))
 
-lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime")).settings(Dependencies.runtime)
+lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
+  .settings(Dependencies.runtime)
+  .settings(
+    ReflectiveCodeGen.generatedLanguages := Seq("Scala"),
+    ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"),
+  )
+  .enablePlugins(akka.grpc.build.ReflectiveCodeGen)
+  // needed to be able to override the PB.generate task reliably
+  .disablePlugins(ProtocPlugin)
+  .settings(ProtocPlugin.projectSettings.filterNot(_.a.key.key == PB.generate.key))
 
 /** This could be an independent project - or does upstream provide this already? didn't find it.. */
 val akkaGrpcProtocPluginId = "akka-grpc-scalapb-protoc-plugin"
