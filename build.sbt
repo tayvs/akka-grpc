@@ -39,8 +39,7 @@ lazy val runtime = Project(id = akkaGrpcRuntimeName, base = file("runtime"))
   .settings(Dependencies.runtime)
   .settings(
     ReflectiveCodeGen.generatedLanguages := Seq("Scala"),
-    ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator")
-  )
+    ReflectiveCodeGen.extraGenerators := Seq("ScalaMarshallersCodeGenerator"))
   .enablePlugins(akka.grpc.build.ReflectiveCodeGen)
   // needed to be able to override the PB.generate task reliably
   .disablePlugins(ProtocPlugin)
