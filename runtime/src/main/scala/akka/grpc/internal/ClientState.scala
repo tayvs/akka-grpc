@@ -119,8 +119,14 @@ final class ClientState(
           // since it's in the internalChannelRef already
           log.warning(s"Client error [${e.getMessage}], not recreating client")
           close()
+        } else if (settings.creationDelay.length < 1) {
+          if (!closeDemand.isCompleted) {
+            log.warning(s"Client error [${e.getMessage}], recreating client")
+            recreate(creationsLeft - 1)
+          }
         } else {
           log.warning(s"Client error [${e.getMessage}], recreating client after ${settings.creationDelay}")
+
           // TODO #733 remove cast once we update Akka
           val scheduler = mat.asInstanceOf[ActorMaterializer].system.scheduler
           val ec = mat.asInstanceOf[ActorMaterializer].system.dispatcher
@@ -131,12 +137,12 @@ final class ClientState(
             () =>
               Future {
                 log.info("running future")
-                import scala.collection.JavaConverters._
-                Thread.getAllStackTraces().asScala.map {
-                  case (thread, trace) =>
-                    log.info(thread.getName())
-                    trace.foreach(e => log.info(e.toString()))
-                }
+                // import scala.collection.JavaConverters._
+                // Thread.getAllStackTraces().asScala.map {
+                //   case (thread, trace) =>
+                //     log.info(thread.getName())
+                //     trace.foreach(e => log.info(e.toString()))
+                // }
                 if (!closeDemand.isCompleted) {
                   log.info("Recreating now")
                   recreate(creationsLeft - 1)
