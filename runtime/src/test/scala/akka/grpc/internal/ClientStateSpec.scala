@@ -136,6 +136,7 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
       val channelFactory = (_: GrpcClientSettings) => {
         val creation = actualCreations
         actualCreations += 1
+        sys.log.warning(s"Creation $creation")
         Future.successful {
           InternalChannel(
             new ChannelUtilsSpec.FakeChannel(Stream(IDLE, CONNECTING, READY)),
@@ -143,6 +144,7 @@ class ClientStateSpec extends AsyncWordSpec with Matchers with ScalaFutures with
         }
       }
 
+      sys.log.info("Creating state")
       val configuredAttempts = 12
       val state = new ClientState(
         mockSettings.withCreationAttempts(configuredAttempts).withCreationDelay(0.millis),
