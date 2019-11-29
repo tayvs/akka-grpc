@@ -71,6 +71,7 @@ final class ClientState(
     val maybeChannel = internalChannelRef.get()
     maybeChannel match {
       case Some(channel) =>
+        log.info("Close demanded on channel")
         // invoke `close` on the channel and capture the `channel.done` returned
         val done = channel.flatMap(ChannelUtils.close(_))
         // set the `closing` to the current `channel.done`
@@ -91,6 +92,7 @@ final class ClientState(
           }
         }
       case _ =>
+        log.info("Close demanded (though no channel)")
         // set the `closing` to immediate success
         val done = Future.successful(Done)
         closing.compareAndSet(None, Some(done))
