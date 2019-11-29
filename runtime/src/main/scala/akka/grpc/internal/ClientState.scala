@@ -131,6 +131,12 @@ final class ClientState(
             () =>
               Future {
                 log.info("running future")
+                import scala.collection.JavaConverters._
+                Thread.getAllStackTraces().asScala.map {
+                  case (thread, trace) =>
+                    log.info(thread.getName())
+                    trace.foreach(e => log.info(e.toString()))
+                }
                 if (!closeDemand.isCompleted) {
                   log.info("Recreating now")
                   recreate(creationsLeft - 1)
