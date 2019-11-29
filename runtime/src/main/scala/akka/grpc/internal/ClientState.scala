@@ -112,25 +112,32 @@ final class ClientState(
   private def recreateOnFailure(done: Future[Done], creationsLeft: Int): Unit =
     done.onComplete {
       case Failure(e) =>
-        log.warning(s"Client error [${e.getMessage}], recreating client after ${settings.creationDelay}")
-        // TODO #733 remove cast once we update Akka
-        val scheduler = mat.asInstanceOf[ActorMaterializer].system.scheduler
-        val ec = mat.asInstanceOf[ActorMaterializer].system.dispatcher
-        Patterns.after(
-          settings.creationDelay,
-          scheduler,
-          ec,
-          () =>
-            Future {
-              if (!closeDemand.isCompleted) {
-                if (creationsLeft > 0)
-                  recreate(creationsLeft - 1)
-                else
-                  // Error does not need to be explicitly propagated here
-                  // since it's in the internalChannelRef already
-                  close()
-              }
-            })
+        if (creationsLeft <= 0) {
+          // Error does not need to be explicitly propagated here
+          // since it's in the internalChannelRef already
+          log.warning(s"Client error [${e.getMessage}], not recreating client")
+          close()
+        } else {
+          log.warning(s"Client error [${e.getMessage}], recreating client after ${settings.creationDelay}")
+          // TODO #733 remove cast once we update Akka
+          val scheduler = mat.asInstanceOf[ActorMaterializer].system.scheduler
+          val ec = mat.asInstanceOf[ActorMaterializer].system.dispatcher
+          Patterns.after(
+            settings.creationDelay,
+            scheduler,
+            ec,
+            () =>
+              Future {
+                if (!closeDemand.isCompleted) {
+                  if (creationsLeft > 0) {
+                    log.info("Recreating now")
+                    recreate(creationsLeft - 1)
+                  } else {
+
+                  }
+                }
+              })
+        }
       case _ =>
         log.info("Client closed")
       // completed successfully, nothing else to do (except perhaps log?)
