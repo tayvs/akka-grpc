@@ -35,12 +35,12 @@ final class ClientState(
   def this(settings: GrpcClientSettings, log: LoggingAdapter)(implicit mat: Materializer, ex: ExecutionContext) =
     this(settings, log, s => NettyClientUtils.createChannel(s))
 
-  private val internalChannelRef = new AtomicReference[Option[Future[InternalChannel]]](Some(create()))
-  internalChannelRef.get().foreach(c => recreateOnFailure(c.flatMap(_.done), settings.creationAttempts))
-
   // usually None, it'll have a value when the underlying InternalChannel is closing or closed.
   private val closing = new AtomicReference[Option[Future[Done]]](None)
   private val closeDemand: Promise[Done] = Promise[Done]()
+
+  private val internalChannelRef = new AtomicReference[Option[Future[InternalChannel]]](Some(create()))
+  internalChannelRef.get().foreach(c => recreateOnFailure(c.flatMap(_.done), settings.creationAttempts))
 
   mat match {
     case m: ActorMaterializer =>
