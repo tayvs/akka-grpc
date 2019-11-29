@@ -128,13 +128,10 @@ final class ClientState(
             ec,
             () =>
               Future {
+                log.info("running future")
                 if (!closeDemand.isCompleted) {
-                  if (creationsLeft > 0) {
-                    log.info("Recreating now")
-                    recreate(creationsLeft - 1)
-                  } else {
-
-                  }
+                  log.info("Recreating now")
+                  recreate(creationsLeft - 1)
                 }
               })
         }
